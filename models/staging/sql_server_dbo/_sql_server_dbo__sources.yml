@@ -1,0 +1,57 @@
+version: 2
+sources:
+  - name: SQL_SERVER_DBO
+    description: "TABLAS CRUDAS PROVENIENTES DE SQL SERVER"
+    database: ALUMNO18_DEV_BRONZE_DB
+    schema: SQL_SERVER_DBO
+    quoting:
+      database: false
+      schema: false
+      identifier: false
+    tables:
+      - name: USERS
+        columns:
+          - name: USER_ID
+            tests: [unique, not_null]
+        config:
+          loaded_at_field: _FIVETRAN_SYNCED
+      - name: ADDRESSES
+        columns:
+          - name: ADDRESS_ID
+            tests: [unique, not_null]
+        config:
+          loaded_at_field: _FIVETRAN_SYNCED
+      - name: PRODUCTS
+        columns:
+          - name: PRODUCT_ID
+            tests: [unique, not_null]
+        config:
+          loaded_at_field: _FIVETRAN_SYNCED
+      - name: PROMOS
+        columns:
+          - name: PROMO_ID
+            tests: [unique, not_null]
+        config:
+          loaded_at_field: _FIVETRAN_SYNCED
+      - name: ORDERS
+        columns:
+          - name: ORDER_ID
+            tests: [unique, not_null]
+        config:
+          loaded_at_field: _FIVETRAN_SYNCED
+      - name: ORDER_ITEMS
+        config:
+          loaded_at_field: _FIVETRAN_SYNCED
+      - name: EVENTS
+        columns:
+          - name: EVENT_ID
+            tests: [unique, not_null]
+        config:
+          loaded_at_field: _FIVETRAN_SYNCED
+      - name: BUDGET
+        config:
+          loaded_at_field: _FIVETRAN_SYNCED
+    config:
+      freshness:
+        warn_after: {count: 365, period: day}
+        error_after: {count: 730, period: day}

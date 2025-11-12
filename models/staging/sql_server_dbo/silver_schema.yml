@@ -1,0 +1,96 @@
+version: 2
+models:
+  - name: s_users
+    columns:
+      - name: user_id
+        tests: [not_null, unique]
+      - name: address_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('addresses')
+                field: address_id
+  - name: s_orders
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+      - name: user_id
+        tests:
+          - relationships: {arguments: {to: ref('s_users'), field: user_id}}
+      - name: promo_id
+        tests:
+          - relationships: {arguments: {to: ref('promos'), field: promo_id}}
+      - name: address_id
+        tests:
+          - relationships: {arguments: {to: ref('addresses'), field: address_id}}
+
+  - name: s_order_items
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['order_id', 'product_id']
+    columns:
+      - name: order_id
+        tests:
+          - relationships: {arguments: {to: ref('s_orders'), field: order_id}}
+      - name: product_id
+        tests:
+          - relationships: {arguments: {to: ref('products'), field: product_id}}
+
+  - name: s_shipments
+    columns:
+      - name: tracking_id
+        tests: [not_null, unique]
+      - name: order_id
+        tests:
+          - relationships: {arguments: {to: ref('s_orders'), field: order_id}}
+
+  - name: s_events
+    columns:
+      - name: event_id
+        tests: [not_null, unique]
+      - name: user_id
+        tests:
+          - relationships: {arguments: {to: ref('s_users'), field: user_id}}
+      - name: product_id
+        tests:
+          - relationships: {arguments: {to: ref('products'), field: product_id}}
+      - name: order_id
+        tests:
+          - relationships: {arguments: {to: ref('s_orders'), field: order_id}}
+
+  - name: addresses
+    columns:
+      - name: address_id
+        tests: [not_null, unique]
+
+  - name: products
+    columns:
+      - name: product_id
+        tests: [not_null, unique]
+
+  - name: promos
+    columns:
+      - name: promo_id
+        tests: [not_null, unique]
+
+  - name: budget
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['product_id', 'month']
+
+  - name: historico_precio
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['product_id', 'valid_from']
+    columns:
+      - name: product_id
+        tests:
+          - not_null
+          - relationships: {arguments: {to: ref('products'), field: product_id}}
+      - name: price_usd
+        tests: [not_null]
+      - name: valid_from
+        tests: [not_null]
