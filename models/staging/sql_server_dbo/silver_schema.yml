@@ -59,28 +59,28 @@ models:
         tests:
           - relationships: {arguments: {to: ref('s_orders'), field: order_id}}
 
-  - name: addresses
+  - name: s_addresses
     columns:
       - name: address_id
         tests: [not_null, unique]
 
-  - name: products
+  - name: s_products
     columns:
       - name: product_id
         tests: [not_null, unique]
 
-  - name: promos
+  - name: s_promos
     columns:
       - name: promo_id
         tests: [not_null, unique]
 
-  - name: budget
+  - name: s_budget
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: ['product_id', 'month']
 
-  - name: historico_precio
+  - name: s_historico_precio
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:

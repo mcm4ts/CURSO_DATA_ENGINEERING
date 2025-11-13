@@ -1,0 +1,27 @@
+version: 2
+
+sources:
+  - name: GOOGLE_SHEETS
+    description: "Datos externos provenientes de Google Sheets (presupuestos, etc.)"
+    database: ALUMNO18_DEV_BRONZE_DB
+    schema: GOOGLE_SHEETS
+
+    quoting:
+      database: false
+      schema: false
+      identifier: false
+
+    freshness:
+      warn_after: {count: 365, period: day}
+      error_after: {count: 730, period: day}
+
+    tables:
+      - name: BUDGET
+        description: "Presupuestos mensuales por producto"
+        loaded_at_field: _FIVETRAN_SYNCED
+        columns:
+          - name: PRODUCT_ID
+            tests: [not_null]
+          - name: MONTH
+            tests: [not_null]
+          - name: QUANTITY

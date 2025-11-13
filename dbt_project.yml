@@ -1,12 +1,12 @@
-# Nombre del proyecto
 name: 'my_new_project'
 version: '1.0.0'
 config-version: 2
 
-# Perfil (debe coincidir con tu perfil de conexión de Snowflake en ~/.dbt/profiles.yml)
+# Nombre del profile definido en tu ~/.dbt/profiles.yml
+# (en dbt Cloud suele ser 'user' o 'default')
 profile: 'default'
 
-# Estructura de carpetas
+# Directorios de tu proyecto dbt
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
@@ -14,46 +14,47 @@ seed-paths: ["seeds"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 
-# Carpeta donde dbt guarda archivos compilados y artefactos
+# Carpetas que dbt limpia en cada ejecución
 target-path: "target"
 clean-targets:
   - "target"
   - "dbt_packages"
 
+# ============================================================
+# CONFIGURACIÓN DE MODELOS Y CAPAS
+# ============================================================
+
 models:
-   my_new_project:      # <- este debe coincidir con name
-    +database: ALUMNO18_DEV_SILVER_DB
-    +schema: SILVER
+  my_new_project:
 
-    silver:
-      +materialized: view
+    # ========================================================
+    # CAPA SILVER (Staging)
+    # ========================================================
+    # Aquí viven los modelos limpios y normalizados que vienen
+    # de las fuentes BRONZE. Estos son los s_*
+    staging:
+      +database: ALUMNO18_DEV_SILVER_DB
+      +schema: SILVER
+      +materialized: view  # Valor por defecto, pero puedes sobrescribirlo en cada modelo
 
-      s_users:
-        +materialized: incremental
-        +incremental_strategy: merge
-        +unique_key: user_id
+      # Subcarpeta sql_server_dbo (tablas Fivetran desde SQL Server)
+      sql_server_dbo:
+        +database: ALUMNO18_DEV_SILVER_DB
+        +schema: SILVER
+        +materialized: incremental   # Las tablas grandes usan incremental
 
-      s_orders:
-        +materialized: incremental
-        +incremental_strategy: merge
-        +unique_key: order_id
+      # Subcarpeta google_sheets (fuente de presupuestos)
+      google_sheets:
+        +database: ALUMNO18_DEV_SILVER_DB
+        +schema: SILVER
+        +materialized: view          # Normalmente liviana y actualizable completa
 
-      s_order_items:
-        +materialized: incremental
-        +incremental_strategy: merge
-        +unique_key: ["order_id","product_id"]
-
-      s_shipments:
-        +materialized: incremental
-        +incremental_strategy: merge
-        +unique_key: tracking_id
-
-      s_events:
-        +materialized: incremental
-        +incremental_strategy: merge
-        +unique_key: event_id
-
-      historico_precio:
-        +materialized: incremental
-        +incremental_strategy: merge
-        +unique_key: ["product_id","valid_from"]
+    # ========================================================
+    # CAPA GOLD (Marts)
+    # ========================================================
+    # Si más adelante agregas tus modelos analíticos o dimensionales,
+    # puedes crearlos aquí. Ahora mismo no los usamos, pero ya queda preparado.
+    marts:
+      +database: ALUMNO18_DEV_GOLD_DB
+      +schema: GOLD
+      +materialized: table

@@ -7,4 +7,4 @@ select
   nullif(trim(state),'')    as state,
   nullif(trim(country),'')  as country
 from {{ source('SQL_SERVER_DBO','ADDRESSES') }}
-where coalesce(_fivetran_deleted,false)=false;
+where coalesce(_fivetran_deleted,false)=false

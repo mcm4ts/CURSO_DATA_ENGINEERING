@@ -5,4 +5,4 @@ select
   discount::number           as discount_pct,
   lower(nullif(trim(status),''))::varchar as status
 from {{ source('SQL_SERVER_DBO','PROMOS') }}
-where coalesce(_fivetran_deleted,false)=false;
+where coalesce(_fivetran_deleted,false)=false
