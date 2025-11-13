@@ -1,96 +1,223 @@
 version: 2
+
 models:
+
+  # -------------------------------------------------------
+  # USERS
+  # -------------------------------------------------------
   - name: s_users
     columns:
       - name: user_id
         tests: [not_null, unique]
+
       - name: address_id
         tests:
           - relationships:
               arguments:
-                to: ref('addresses')
+                to: ref('s_addresses')
                 field: address_id
+
+
+  # -------------------------------------------------------
+  # ORDERS
+  # -------------------------------------------------------
   - name: s_orders
     columns:
       - name: order_id
         tests: [not_null, unique]
+
       - name: user_id
         tests:
-          - relationships: {arguments: {to: ref('s_users'), field: user_id}}
+          - relationships:
+              arguments:
+                to: ref('s_users')
+                field: user_id
+
       - name: promo_id
         tests:
-          - relationships: {arguments: {to: ref('promos'), field: promo_id}}
+          - relationships:
+              arguments:
+                to: ref('s_promos')
+                field: promo_id
+
       - name: address_id
         tests:
-          - relationships: {arguments: {to: ref('addresses'), field: address_id}}
+          - relationships:
+              arguments:
+                to: ref('s_addresses')
+                field: address_id
 
+      - name: order_status_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('order_status')
+                field: order_status_id
+
+      - name: shipping_service_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('shipping_services')
+                field: shipping_service_id
+
+
+  # -------------------------------------------------------
+  # ORDER ITEMS
+  # -------------------------------------------------------
   - name: s_order_items
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: ['order_id', 'product_id']
+
     columns:
       - name: order_id
         tests:
-          - relationships: {arguments: {to: ref('s_orders'), field: order_id}}
+          - relationships:
+              arguments:
+                to: ref('s_orders')
+                field: order_id
+
       - name: product_id
         tests:
-          - relationships: {arguments: {to: ref('products'), field: product_id}}
+          - relationships:
+              arguments:
+                to: ref('s_products')
+                field: product_id
 
+
+  # -------------------------------------------------------
+  # SHIPMENTS
+  # -------------------------------------------------------
   - name: s_shipments
     columns:
       - name: tracking_id
         tests: [not_null, unique]
+
       - name: order_id
         tests:
-          - relationships: {arguments: {to: ref('s_orders'), field: order_id}}
+          - relationships:
+              arguments:
+                to: ref('s_orders')
+                field: order_id
 
+      - name: shipping_service_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('shipping_services')
+                field: shipping_service_id
+
+
+  # -------------------------------------------------------
+  # EVENTS
+  # -------------------------------------------------------
   - name: s_events
     columns:
       - name: event_id
         tests: [not_null, unique]
+
       - name: user_id
         tests:
-          - relationships: {arguments: {to: ref('s_users'), field: user_id}}
+          - relationships:
+              arguments:
+                to: ref('s_users')
+                field: user_id
+
       - name: product_id
         tests:
-          - relationships: {arguments: {to: ref('products'), field: product_id}}
+          - relationships:
+              arguments:
+                to: ref('s_products')
+                field: product_id
+
       - name: order_id
         tests:
-          - relationships: {arguments: {to: ref('s_orders'), field: order_id}}
+          - relationships:
+              arguments:
+                to: ref('s_orders')
+                field: order_id
 
+      - name: event_type_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('event_types')
+                field: event_type_id
+
+
+  # -------------------------------------------------------
+  # ADDRESSES
+  # -------------------------------------------------------
   - name: s_addresses
     columns:
       - name: address_id
         tests: [not_null, unique]
 
+      - name: zipcode_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('zipcodes')
+                field: zipcode_id
+
+
+  # -------------------------------------------------------
+  # PRODUCTS
+  # -------------------------------------------------------
   - name: s_products
     columns:
       - name: product_id
         tests: [not_null, unique]
 
+
+  # -------------------------------------------------------
+  # PROMOS
+  # -------------------------------------------------------
   - name: s_promos
     columns:
       - name: promo_id
         tests: [not_null, unique]
 
+      - name: promo_status_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('promo_status')
+                field: promo_status_id
+
+
+  # -------------------------------------------------------
+  # BUDGET
+  # -------------------------------------------------------
   - name: s_budget
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: ['product_id', 'month']
 
+
+  # -------------------------------------------------------
+  # HISTORICO PRECIO (SCD2 DE PRECIO)
+  # -------------------------------------------------------
   - name: s_historico_precio
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: ['product_id', 'valid_from']
+
     columns:
       - name: product_id
         tests:
           - not_null
-          - relationships: {arguments: {to: ref('products'), field: product_id}}
+          - relationships:
+              arguments:
+                to: ref('s_products')
+                field: product_id
+
       - name: price_usd
         tests: [not_null]
+
       - name: valid_from
         tests: [not_null]
