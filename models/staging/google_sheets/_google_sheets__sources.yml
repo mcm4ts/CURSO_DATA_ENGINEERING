@@ -1,8 +1,9 @@
 version: 2
 
 sources:
+
   - name: GOOGLE_SHEETS
-    description: "Datos externos provenientes de Google Sheets (presupuestos, etc.)"
+    description: "Tablas crudas provenientes de Google Sheets (Bronze)."
     database: ALUMNO18_DEV_BRONZE_DB
     schema: GOOGLE_SHEETS
 
@@ -16,12 +17,14 @@ sources:
       error_after: {count: 730, period: day}
 
     tables:
+
       - name: BUDGET
-        description: "Presupuestos mensuales por producto"
+        description: "Presupuesto mensual por producto (Google Sheets)."
         loaded_at_field: _FIVETRAN_SYNCED
         columns:
+          - name: _ROW
+            tests: [not_null, unique]
           - name: PRODUCT_ID
-            tests: [not_null]
-          - name: MONTH
-            tests: [not_null]
           - name: QUANTITY
+          - name: MONTH
+          - name: _FIVETRAN_SYNCED

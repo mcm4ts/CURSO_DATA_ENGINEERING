@@ -1,57 +1,119 @@
 version: 2
+
 sources:
+
   - name: SQL_SERVER_DBO
-    description: "TABLAS CRUDAS PROVENIENTES DE SQL SERVER"
+    description: "Tablas crudas provenientes de SQL Server (Bronze)."
     database: ALUMNO18_DEV_BRONZE_DB
     schema: SQL_SERVER_DBO
+
     quoting:
       database: false
       schema: false
       identifier: false
+
+    freshness:
+      warn_after: {count: 365, period: day}
+      error_after: {count: 730, period: day}
+
     tables:
-      - name: USERS
-        columns:
-          - name: USER_ID
-            tests: [unique, not_null]
-        config:
-          loaded_at_field: _FIVETRAN_SYNCED
+
       - name: ADDRESSES
+        description: "Direcciones de envío de los usuarios."
+        loaded_at_field: _FIVETRAN_SYNCED
         columns:
           - name: ADDRESS_ID
-            tests: [unique, not_null]
-        config:
-          loaded_at_field: _FIVETRAN_SYNCED
-      - name: PRODUCTS
-        columns:
-          - name: PRODUCT_ID
-            tests: [unique, not_null]
-        config:
-          loaded_at_field: _FIVETRAN_SYNCED
-      - name: PROMOS
-        columns:
-          - name: PROMO_ID
-            tests: [unique, not_null]
-        config:
-          loaded_at_field: _FIVETRAN_SYNCED
-      - name: ORDERS
-        columns:
-          - name: ORDER_ID
-            tests: [unique, not_null]
-        config:
-          loaded_at_field: _FIVETRAN_SYNCED
-      - name: ORDER_ITEMS
-        config:
-          loaded_at_field: _FIVETRAN_SYNCED
+            tests: [not_null, unique]
+          - name: ZIPCODE
+          - name: COUNTRY
+          - name: ADDRESS
+          - name: STATE
+          - name: _FIVETRAN_DELETED
+          - name: _FIVETRAN_SYNCED
+
       - name: EVENTS
+        description: "Eventos generados por los usuarios en la web/app."
+        loaded_at_field: _FIVETRAN_SYNCED
         columns:
           - name: EVENT_ID
-            tests: [unique, not_null]
-        config:
-          loaded_at_field: _FIVETRAN_SYNCED
-      - name: BUDGET
-        config:
-          loaded_at_field: _FIVETRAN_SYNCED
-    config:
-      freshness:
-        warn_after: {count: 365, period: day}
-        error_after: {count: 730, period: day}
+            tests: [not_null, unique]
+          - name: PAGE_URL
+          - name: EVENT_TYPE
+          - name: USER_ID
+          - name: PRODUCT_ID
+          - name: SESSION_ID
+          - name: CREATED_AT
+          - name: ORDER_ID
+          - name: _FIVETRAN_DELETED
+          - name: _FIVETRAN_SYNCED
+
+      - name: ORDERS
+        description: "Pedidos realizados por los usuarios."
+        loaded_at_field: _FIVETRAN_SYNCED
+        columns:
+          - name: ORDER_ID
+            tests: [not_null, unique]
+          - name: SHIPPING_SERVICE
+          - name: SHIPPING_COST
+          - name: ADDRESS_ID
+          - name: CREATED_AT
+          - name: PROMO_ID
+          - name: ESTIMATED_DELIVERY_AT
+          - name: ORDER_COST
+          - name: USER_ID
+          - name: ORDER_TOTAL
+          - name: DELIVERED_AT
+          - name: TRACKING_ID
+          - name: STATUS
+          - name: _FIVETRAN_DELETED
+          - name: _FIVETRAN_SYNCED
+
+      - name: ORDER_ITEMS
+        description: "Relación entre pedidos y productos con cantidades."
+        loaded_at_field: _FIVETRAN_SYNCED
+        columns:
+          - name: ORDER_ID
+          - name: PRODUCT_ID
+          - name: QUANTITY
+          - name: _FIVETRAN_DELETED
+          - name: _FIVETRAN_SYNCED
+
+      - name: PRODUCTS
+        description: "Catálogo de productos."
+        loaded_at_field: _FIVETRAN_SYNCED
+        columns:
+          - name: PRODUCT_ID
+            tests: [not_null, unique]
+          - name: PRICE
+          - name: NAME
+          - name: INVENTORY
+          - name: _FIVETRAN_DELETED
+          - name: _FIVETRAN_SYNCED
+
+      - name: PROMOS
+        description: "Promociones y descuentos aplicables."
+        loaded_at_field: _FIVETRAN_SYNCED
+        columns:
+          - name: PROMO_ID
+            tests: [not_null, unique]
+          - name: DISCOUNT
+          - name: STATUS
+          - name: _FIVETRAN_DELETED
+          - name: _FIVETRAN_SYNCED
+
+      - name: USERS
+        description: "Usuarios registrados en la plataforma."
+        loaded_at_field: _FIVETRAN_SYNCED
+        columns:
+          - name: USER_ID
+            tests: [not_null, unique]
+          - name: UPDATED_AT
+          - name: ADDRESS_ID
+          - name: LAST_NAME
+          - name: CREATED_AT
+          - name: PHONE_NUMBER
+          - name: TOTAL_ORDERS
+          - name: FIRST_NAME
+          - name: EMAIL
+          - name: _FIVETRAN_DELETED
+          - name: _FIVETRAN_SYNCED

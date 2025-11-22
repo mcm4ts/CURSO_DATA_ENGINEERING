@@ -2,222 +2,268 @@ version: 2
 
 models:
 
-  # -------------------------------------------------------
-  # USERS
-  # -------------------------------------------------------
-  - name: s_users
+  # ========================
+  # CATÁLOGOS GEO
+  # ========================
+
+  - name: stg_sql_server_dbo__countries
+    description: "Catálogo de países normalizado a partir de ADDRESSES"
     columns:
-      - name: user_id
+      - name: country_id
         tests: [not_null, unique]
+      - name: country_name
+        tests: [not_null]
 
-      - name: address_id
-        tests:
-          - relationships:
-              arguments:
-                to: ref('s_addresses')
-                field: address_id
-
-
-  # -------------------------------------------------------
-  # ORDERS
-  # -------------------------------------------------------
-  - name: s_orders
+  - name: stg_sql_server_dbo__states
+    description: "Catálogo de estados/provincias con relación a countries"
     columns:
-      - name: order_id
+      - name: state_id
         tests: [not_null, unique]
-
-      - name: user_id
+      - name: country_id
         tests:
           - relationships:
               arguments:
-                to: ref('s_users')
-                field: user_id
+                to: ref('stg_sql_server_dbo__countries')
+                field: country_id
 
-      - name: promo_id
-        tests:
-          - relationships:
-              arguments:
-                to: ref('s_promos')
-                field: promo_id
-
-      - name: address_id
-        tests:
-          - relationships:
-              arguments:
-                to: ref('s_addresses')
-                field: address_id
-
-      - name: order_status_id
-        tests:
-          - relationships:
-              arguments:
-                to: ref('order_status')
-                field: order_status_id
-
-      - name: shipping_service_id
-        tests:
-          - relationships:
-              arguments:
-                to: ref('shipping_services')
-                field: shipping_service_id
-
-
-  # -------------------------------------------------------
-  # ORDER ITEMS
-  # -------------------------------------------------------
-  - name: s_order_items
-    tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns: ['order_id', 'product_id']
-
+  - name: stg_sql_server_dbo__zipcodes
+    description: "Catálogo de códigos postales con relación a states y countries"
     columns:
-      - name: order_id
-        tests:
-          - relationships:
-              arguments:
-                to: ref('s_orders')
-                field: order_id
-
-      - name: product_id
-        tests:
-          - relationships:
-              arguments:
-                to: ref('s_products')
-                field: product_id
-
-
-  # -------------------------------------------------------
-  # SHIPMENTS
-  # -------------------------------------------------------
-  - name: s_shipments
-    columns:
-      - name: tracking_id
+      - name: zipcode_id
         tests: [not_null, unique]
-
-      - name: order_id
+      - name: state_id
         tests:
           - relationships:
               arguments:
-                to: ref('s_orders')
-                field: order_id
-
-      - name: shipping_service_id
+                to: ref('stg_sql_server_dbo__states')
+                field: state_id
+      - name: country_id
         tests:
           - relationships:
               arguments:
-                to: ref('shipping_services')
-                field: shipping_service_id
+                to: ref('stg_sql_server_dbo__countries')
+                field: country_id
 
+  # ========================
+  # DIRECCIONES Y USUARIOS
+  # ========================
 
-  # -------------------------------------------------------
-  # EVENTS
-  # -------------------------------------------------------
-  - name: s_events
-    columns:
-      - name: event_id
-        tests: [not_null, unique]
-
-      - name: user_id
-        tests:
-          - relationships:
-              arguments:
-                to: ref('s_users')
-                field: user_id
-
-      - name: product_id
-        tests:
-          - relationships:
-              arguments:
-                to: ref('s_products')
-                field: product_id
-
-      - name: order_id
-        tests:
-          - relationships:
-              arguments:
-                to: ref('s_orders')
-                field: order_id
-
-      - name: event_type_id
-        tests:
-          - relationships:
-              arguments:
-                to: ref('event_types')
-                field: event_type_id
-
-
-  # -------------------------------------------------------
-  # ADDRESSES
-  # -------------------------------------------------------
-  - name: s_addresses
+  - name: stg_sql_server_dbo__addresses
+    description: "Direcciones normalizadas, con FK a zipcodes"
     columns:
       - name: address_id
         tests: [not_null, unique]
-
       - name: zipcode_id
         tests:
           - relationships:
               arguments:
-                to: ref('zipcodes')
+                to: ref('stg_sql_server_dbo__zipcodes')
                 field: zipcode_id
 
+  - name: stg_sql_server_dbo__users
+    description: "Usuarios de la plataforma, con FK a addresses"
+    columns:
+      - name: user_id
+        tests: [not_null, unique]
+      - name: address_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_sql_server_dbo__addresses')
+                field: address_id
 
-  # -------------------------------------------------------
-  # PRODUCTS
-  # -------------------------------------------------------
-  - name: s_products
+  # ========================
+  # CATÁLOGOS COMERCIALES
+  # ========================
+
+  - name: stg_sql_server_dbo__products
+    description: "Catálogo de productos"
     columns:
       - name: product_id
         tests: [not_null, unique]
 
+  - name: stg_sql_server_dbo__promo_status
+    description: "Catálogo de estados de las promociones"
+    columns:
+      - name: promo_status_id
+        tests: [not_null, unique]
 
-  # -------------------------------------------------------
-  # PROMOS
-  # -------------------------------------------------------
-  - name: s_promos
+  - name: stg_sql_server_dbo__promos
+    description: "Promociones con FK a promo_status"
     columns:
       - name: promo_id
         tests: [not_null, unique]
-
       - name: promo_status_id
         tests:
           - relationships:
               arguments:
-                to: ref('promo_status')
+                to: ref('stg_sql_server_dbo__promo_status')
                 field: promo_status_id
 
+  - name: stg_sql_server_dbo__order_status
+    description: "Catálogo de estados de pedido"
+    columns:
+      - name: order_status_id
+        tests: [not_null, unique]
 
-  # -------------------------------------------------------
-  # BUDGET
-  # -------------------------------------------------------
-  - name: s_budget
+  - name: stg_sql_server_dbo__shipping_services
+    description: "Catálogo de servicios de envío"
+    columns:
+      - name: shipping_service_id
+        tests: [not_null, unique]
+
+  - name: stg_sql_server_dbo__event_types
+    description: "Catálogo de tipos de evento web"
+    columns:
+      - name: event_type_id
+        tests: [not_null, unique]
+
+  # ========================
+  # TRANSACCIONALES
+  # ========================
+
+  - name: stg_sql_server_dbo__orders
+    description: "Pedidos normalizados, con FKs a users, addresses, promos, shipping, order_status"
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+      - name: user_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_sql_server_dbo__users')
+                field: user_id
+      - name: address_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_sql_server_dbo__addresses')
+                field: address_id
+      - name: promo_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_sql_server_dbo__promos')
+                field: promo_id
+      - name: shipping_service_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_sql_server_dbo__shipping_services')
+                field: shipping_service_id
+      - name: order_status_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_sql_server_dbo__order_status')
+                field: order_status_id
+
+  - name: stg_sql_server_dbo__order_items
+    description: "Líneas de pedido (order_id + product_id)"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['order_id', 'product_id']
+    columns:
+      - name: order_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_sql_server_dbo__orders')
+                field: order_id
+      - name: product_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_sql_server_dbo__products')
+                field: product_id
+
+  - name: stg_sql_server_dbo__shipments
+    description: "Envíos con tracking y FK a orders y shipping_services"
+    columns:
+      - name: tracking_id
+        tests: [not_null, unique]
+      - name: order_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_sql_server_dbo__orders')
+                field: order_id
+      - name: shipping_service_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_sql_server_dbo__shipping_services')
+                field: shipping_service_id
+
+  - name: stg_sql_server_dbo__events
+    description: "Eventos web con FKs a users, products, orders y event_types"
+    columns:
+      - name: event_id
+        tests: [not_null, unique]
+      - name: user_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_sql_server_dbo__users')
+                field: user_id
+      - name: product_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_sql_server_dbo__products')
+                field: product_id
+      - name: order_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_sql_server_dbo__orders')
+                field: order_id
+      - name: event_type_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_sql_server_dbo__event_types')
+                field: event_type_id
+
+  # ========================
+  # BUDGET & HISTÓRICO PRECIO
+  # ========================
+
+  - name: stg_google_sheets__budget
+    description: "Presupuesto por producto y mes desde Google Sheets"
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: ['product_id', 'month']
-
-
-  # -------------------------------------------------------
-  # HISTORICO PRECIO (SCD2 DE PRECIO)
-  # -------------------------------------------------------
-  - name: s_historico_precio
-    tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns: ['product_id', 'valid_from']
-
     columns:
       - name: product_id
         tests:
           - not_null
           - relationships:
               arguments:
-                to: ref('s_products')
+                to: ref('stg_sql_server_dbo__products')
                 field: product_id
-
-      - name: price_usd
+      - name: month
+        tests: [not_null]
+      - name: quantity
         tests: [not_null]
 
+  - name: stg_sql_server_dbo__historico_precio
+    description: "Histórico de cambios de precio por producto (SCD de rangos)"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['product_id', 'valid_from']
+    columns:
+      - name: product_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_sql_server_dbo__products')
+                field: product_id
+      - name: price_usd
+        tests: [not_null]
       - name: valid_from
         tests: [not_null]
