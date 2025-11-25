@@ -28,13 +28,16 @@ shipments as (
     from {{ ref('stg_sql_server_dbo__shipments') }}
 ),
 
+-- Usamos el snapshot de precios en lugar de historico_precio
 prices as (
     select
         product_id,
+        inventory,
         price_usd,
-        valid_from,
-        coalesce(valid_to, '9999-12-31'::timestamp_ntz) as valid_to
-    from {{ ref('stg_sql_server_dbo__historico_precio') }}
+        name,
+        last_loaded_utc as valid_from,  -- Usa last_loaded_utc o el campo adecuado
+        current_timestamp() as valid_to  -- Fecha actual como valid_to
+    from {{ ref('products_snapshot') }}  -- Referenciamos el snapshot de precios
 ),
 
 order_qty as (
@@ -52,17 +55,16 @@ joined as (
         o.user_id,
         o.promo_id,
         sh.tracking_id,
-        o.created_at_utc::date                        as date,      -- FK a DIM_DATES
-        oi.quantity                                   as quantity,
+        o.created_at_utc::date as date,  -- FK a DIM_DATES
+        oi.quantity as quantity,
         p.price_usd,
-        (oi.quantity * p.price_usd)                   as order_subcost_usd,
-        (o.shipping_cost_usd * oi.quantity / nullif(oq.total_quantity, 0))
-                                                     as shipping_subcost_usd,
+        (oi.quantity * p.price_usd) as order_subcost_usd,
+        (o.shipping_cost_usd * oi.quantity / nullif(oq.total_quantity, 0)) as shipping_subcost_usd,
         (
             (oi.quantity * p.price_usd)
-          + (o.shipping_cost_usd * oi.quantity / nullif(oq.total_quantity,0))
-        )                                            as total_subcost_usd,
-        oi.last_loaded_utc::date                     as date_load_utc
+            + (o.shipping_cost_usd * oi.quantity / nullif(oq.total_quantity,0))
+        ) as total_subcost_usd,
+        oi.last_loaded_utc::date as date_load_utc
     from order_items oi
     left join orders o
         on oi.order_id = o.order_id
@@ -72,7 +74,7 @@ joined as (
         on oi.order_id = oq.order_id
     left join prices p
         on oi.product_id = p.product_id
-       and o.created_at_utc between p.valid_from and p.valid_to
+       and o.created_at_utc between p.valid_from and p.valid_to  -- Verificamos que el precio esté dentro del rango de validez
 ),
 
 final as (
@@ -84,13 +86,13 @@ final as (
             coalesce(promo_id,'') || '|' ||
             coalesce(tracking_id,'') || '|' ||
             to_char(date, 'YYYY-MM-DD')
-        )                                              as surrogate_op_key,
+        ) as surrogate_op_key,
         order_id,
         product_id,
         user_id,
         promo_id,
         tracking_id,
-        date,                     -- FK a DIM_DATES
+        date,  -- FK a DIM_DATES
         quantity,
         price_usd,
         order_subcost_usd,

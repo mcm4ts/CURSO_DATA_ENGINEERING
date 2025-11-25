@@ -12,11 +12,11 @@ with src as (
 
 clean as (
     select distinct
-        md5(lower(trim(country))) as country_id,
-        lower(trim(country))      as country_name,
+        md5(lower(trim(country))) as country_id,  -- Clave única para el país
+        lower(trim(country)) as country_name,      -- Nombre estandarizado del país
         last_loaded_utc
     from src
-    where country is not null and trim(country) <> ''
+    where country is not null and trim(country) <> ''  -- Filtramos países vacíos o nulos
 )
 
 select *

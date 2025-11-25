@@ -5,16 +5,16 @@
 
 with src as (
     select
-        address_id::varchar                                          as address_id,
+        address_id::varchar as address_id,
         zipcode,
         state,
         country,
-        address::varchar                                             as address,
-        CONVERT_TIMEZONE('UTC', _fivetran_synced)::timestamp_ntz     as last_loaded_utc
+        address::varchar as address,
+        CONVERT_TIMEZONE('UTC', _fivetran_synced)::timestamp_ntz as last_loaded_utc
     from ALUMNO18_DEV_BRONZE_DB.SQL_SERVER_DBO.ADDRESSES
     where coalesce(_fivetran_deleted, 0) = 0
 
-    {% if is_incremental() %}
+    {% if is_incremental() %}  -- Logica para la ingestión incremental
       and CONVERT_TIMEZONE('UTC', _fivetran_synced)::timestamp_ntz >
           (
               select coalesce(
@@ -29,11 +29,7 @@ with src as (
 clean as (
     select
         address_id,
-        md5(
-            zipcode::varchar
-            || '|' || lower(trim(state))
-            || '|' || lower(trim(country))
-        )                   as zipcode_id,
+        md5(zipcode::varchar || '|' || lower(trim(state)) || '|' || lower(trim(country))) as zipcode_id,  -- Generación de surrogate key
         address,
         last_loaded_utc
     from src

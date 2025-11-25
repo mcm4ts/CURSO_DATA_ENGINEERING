@@ -13,12 +13,12 @@ with src as (
 
 base as (
     select distinct
-        md5(lower(trim(state)) || '|' || lower(trim(country))) as state_id,
-        lower(trim(state))                                    as state_name,
-        md5(lower(trim(country)))                             as country_id,
+        md5(lower(trim(state)) || '|' || lower(trim(country))) as state_id, -- Generamos un state_id único por estado + país
+        lower(trim(state)) as state_name,
+        md5(lower(trim(country))) as country_id,  -- Referencia al país, lo traemos de la tabla de countries
         last_loaded_utc
     from src
-    where state is not null and trim(state) <> ''
+    where state is not null and trim(state) <> ''  -- Filtramos estados vacíos o nulos
 )
 
 select *
