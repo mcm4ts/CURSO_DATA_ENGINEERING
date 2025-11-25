@@ -5,16 +5,16 @@
 
 with src as (
     select
-        tracking_id::varchar                                     as tracking_id,
-        order_id::varchar                                        as order_id,
+        tracking_id::varchar as tracking_id,
+        order_id::varchar as order_id,
         shipping_service,
         created_at,
         estimated_delivery_at,
         delivered_at,
-        CONVERT_TIMEZONE('UTC', created_at)           ::timestamp_ntz as created_at_utc,
+        CONVERT_TIMEZONE('UTC', created_at)::timestamp_ntz as created_at_utc,
         CONVERT_TIMEZONE('UTC', estimated_delivery_at)::timestamp_ntz as estimated_delivery_at_utc,
-        CONVERT_TIMEZONE('UTC', delivered_at)         ::timestamp_ntz as delivered_at_utc,
-        CONVERT_TIMEZONE('UTC', _fivetran_synced)     ::timestamp_ntz as last_loaded_utc
+        CONVERT_TIMEZONE('UTC', delivered_at)::timestamp_ntz as delivered_at_utc,
+        CONVERT_TIMEZONE('UTC', _fivetran_synced)::timestamp_ntz as last_loaded_utc
     from ALUMNO18_DEV_BRONZE_DB.SQL_SERVER_DBO.ORDERS
     where coalesce(_fivetran_deleted, 0) = 0
       and tracking_id is not null
@@ -35,6 +35,7 @@ clean as (
     select
         tracking_id,
         order_id,
+        -- Limpiamos shipping_service_id
         md5(lower(replace(trim(replace(shipping_service, '-', '_')), ' ', '_'))) as shipping_service_id,
         created_at_utc,
         estimated_delivery_at_utc,

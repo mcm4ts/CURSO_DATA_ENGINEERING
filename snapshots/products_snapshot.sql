@@ -11,10 +11,11 @@
 
     select
         product_id,
+        -- Reemplazamos nulos en price_usd por 0
+        coalesce(price_usd, 0) as price_usd,
         inventory,
-        price_usd,
         name,
-        last_loaded_utc  -- Asegúrate de que 'last_loaded_utc' esté correctamente incluido
+        last_loaded_utc
     from {{ ref('stg_sql_server_dbo__products') }}
 
 {% endsnapshot %}

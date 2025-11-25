@@ -5,7 +5,7 @@
 with src as (
     select
         product_id::varchar as product_id,
-        to_decimal(price_dollars, 12, 2) as price_usd,  -- Cambié 'price' por 'price_dollars'
+        coalesce(to_decimal(price_dollars, 12, 2), 0) as price_usd,  -- Reemplazamos nulos por 0
         name::varchar as name,
         inventory::number as inventory,
         CONVERT_TIMEZONE('UTC', _fivetran_synced)::timestamp_ntz as last_loaded_utc

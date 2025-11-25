@@ -5,9 +5,10 @@
 
 with src as (
     select
-        order_id::varchar                                        as order_id,
-        product_id::varchar                                      as product_id,
-        quantity::number                                         as quantity,
+        order_id::varchar as order_id,
+        product_id::varchar as product_id,
+        -- Reemplazamos nulos en quantity por 0
+        coalesce(quantity, 0) as quantity,
         CONVERT_TIMEZONE('UTC', _fivetran_synced)::timestamp_ntz as last_loaded_utc
     from ALUMNO18_DEV_BRONZE_DB.SQL_SERVER_DBO.ORDER_ITEMS
 

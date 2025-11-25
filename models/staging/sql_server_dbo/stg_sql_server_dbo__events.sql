@@ -5,14 +5,15 @@
 
 with src as (
     select
-        event_id::varchar                                        as event_id,
-        page_url::varchar                                        as page_url,
-        event_type::varchar                                      as event_type_raw,
-        user_id::varchar                                         as user_id,
-        product_id::varchar                                      as product_id,
-        session_id::varchar                                      as session_id,
-        created_at::timestamp_ntz                                as created_at_utc,
-        order_id::varchar                                        as order_id,
+        event_id::varchar as event_id,
+        page_url::varchar as page_url,
+        event_type::varchar as event_type_raw,
+        user_id::varchar as user_id,
+        -- Reemplazamos nulos en product_id por 'no_product'
+        coalesce(product_id, 'no_product') as product_id,
+        session_id::varchar as session_id,
+        created_at::timestamp_ntz as created_at_utc,
+        order_id::varchar as order_id,
         CONVERT_TIMEZONE('UTC', _fivetran_synced)::timestamp_ntz as last_loaded_utc
     from ALUMNO18_DEV_BRONZE_DB.SQL_SERVER_DBO.EVENTS
 

@@ -1,5 +1,5 @@
 {{ config(
-    materialized = 'table'
+    materialized='table'
 ) }}
 
 with order_items as (
@@ -28,15 +28,14 @@ shipments as (
     from {{ ref('stg_sql_server_dbo__shipments') }}
 ),
 
--- Usamos el snapshot de precios en lugar de historico_precio
 prices as (
     select
         product_id,
+        coalesce(price_usd, 0) as price_usd,  -- Reemplazamos los precios nulos por 0
         inventory,
-        price_usd,
         name,
-        last_loaded_utc as valid_from,  -- Usa last_loaded_utc o el campo adecuado
-        current_timestamp() as valid_to  -- Fecha actual como valid_to
+        last_loaded_utc as valid_from,
+        current_timestamp() as valid_to
     from {{ ref('products_snapshot') }}  -- Referenciamos el snapshot de precios
 ),
 
@@ -58,12 +57,12 @@ joined as (
         o.created_at_utc::date as date,  -- FK a DIM_DATES
         oi.quantity as quantity,
         p.price_usd,
-        (oi.quantity * p.price_usd) as order_subcost_usd,
+        (oi.quantity * coalesce(p.price_usd, 0)) as order_subcost_usd,  -- Aplicamos coalesce para evitar nulos
         (o.shipping_cost_usd * oi.quantity / nullif(oq.total_quantity, 0)) as shipping_subcost_usd,
         (
-            (oi.quantity * p.price_usd)
+            (oi.quantity * coalesce(p.price_usd, 0))
             + (o.shipping_cost_usd * oi.quantity / nullif(oq.total_quantity,0))
-        ) as total_subcost_usd,
+        ) as total_subcost_usd,  -- Aplicamos coalesce aquí también
         oi.last_loaded_utc::date as date_load_utc
     from order_items oi
     left join orders o
